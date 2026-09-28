@@ -102,14 +102,19 @@ class GameWindow(QMainWindow):
         top_bar.addWidget(self.state_label)
         top_bar.addStretch()
         top_bar.addWidget(self.timer_label)
+        #snap to grid
+        grid_widget = QWidget()
+        grid_widget.setLayout(grid)
 
         layout = QVBoxLayout()
         layout.addLayout(top_bar)
-        layout.addLayout(grid)
-
+        #keep it center-aligned
+        layout.addWidget(grid_widget, alignment=Qt.AlignHCenter | Qt.AlignVCenter) 
+        
         container = QWidget()
         container.setLayout(layout)
         self.setCentralWidget(container)
+        self.adjustSize()
 
     def cell_clicked(self, row, col):
         self.game.uncover_cell(row, col)

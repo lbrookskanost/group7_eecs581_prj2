@@ -11,13 +11,21 @@ nd ideas a little better.
 
 Basic Code Template/Outline: Marie Biernacki, Gemini
 """
+import os
+from PyQt5.QtWidgets import QApplication, QDialog
 
 from game_logic import Game
 from board_manager import BoardManager
-from PyQt5.QtWidgets import QApplication, QDialog
 from display import BombInputDialog, GameWindow
 
 def main():
+    
+    #export appropriate env vars for x11/wayland users
+    session_type = os.environ.get('XDG_SESSION_TYPE')
+    if session_type == 'x11':
+        os.environ["QT_QPA_PLATFORM"] = "xcb"
+    elif session_type == 'wayland':
+        os.environ["QT_QPA_PLATFORM"] = "wayland"
 
     app = QApplication([])
 
