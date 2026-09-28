@@ -14,6 +14,7 @@ base_style = """
         color: white;
         border-radius: 5px;
         padding: 6px;
+        color: black;
     }
     QPushButton:hover {
         background-color: #3a75b5;  /* Lighter blue on hover */
