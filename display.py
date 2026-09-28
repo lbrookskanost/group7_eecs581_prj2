@@ -1,7 +1,8 @@
-from PyQt5.QtCore import QSize, Qt
+from PyQt5.QtCore import QSize, Qt, pyqtSignal
 from PyQt5.QtWidgets import (
     QDialog,
     QGridLayout,
+    QHBoxLayout,
     QLabel,
     QLineEdit,
     QMainWindow,
@@ -11,6 +12,17 @@ from PyQt5.QtWidgets import (
 )
 from game_logic import Game
 from styles import NUMBER_COLORS, covered, flagged, uncovered
+
+
+class CellButton(QPushButton):
+    rightClicked = pyqtSignal()
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.RightButton:
+            self.rightClicked.emit()
+        else:
+            super().mousePressEvent(event)  # keep normal left-click/clicked() behavior
+
 
 class BombInputDialog(QDialog):
     def __init__(self, parent=None):
@@ -71,24 +83,46 @@ class GameWindow(QMainWindow):
         for row in range(board.rows):
             button_row = []
             for col in range(board.cols):
-                button = QPushButton()
+                button = CellButton()
                 button.setFixedSize(QSize(32, 32))
                 button.setStyleSheet(covered)
                 button.clicked.connect(lambda _, r=row, c=col: self.cell_clicked(r, c))
+                button.rightClicked.connect(lambda r=row, c=col: self.cell_right_clicked(r, c))
                 grid.addWidget(button, row, col)
                 button_row.append(button)
             self.buttons.append(button_row)
 
+        self.flag_label = QLabel(f"Flags: {self.game.remaining_flags}")
+        self.timer_label = QLabel("PUT TIMER HERE")
+        self.state_label = QLabel(self.game.check_game_state())
+
+        top_bar = QHBoxLayout()
+        top_bar.addWidget(self.flag_label)
+        top_bar.addStretch()
+        top_bar.addWidget(self.state_label)
+        top_bar.addStretch()
+        top_bar.addWidget(self.timer_label)
+
+        layout = QVBoxLayout()
+        layout.addLayout(top_bar)
+        layout.addLayout(grid)
+
         container = QWidget()
-        container.setLayout(grid)
+        container.setLayout(layout)
         self.setCentralWidget(container)
 
     def cell_clicked(self, row, col):
         self.game.uncover_cell(row, col)
         self.update_ui()
 
+    def cell_right_clicked(self, row, col):
+        self.game.toggle_flag(row, col)
+        self.update_ui()
+
     def update_ui(self):
         board = self.game.board
+        self.state_label.setText(self.game.check_game_state())
+        self.flag_label.setText(f"Flags: {self.game.remaining_flags}")
         for row in range(board.rows):
             for col in range(board.cols):
                 cell = board.get_cell(row, col)
