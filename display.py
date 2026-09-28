@@ -12,19 +12,18 @@ from PyQt5.QtWidgets import (
 from game_logic import Game
 
 NUMBER_COLORS = {
-    1: "#1976D2",  # Blue
-    2: "#388E3C",  # Green
-    3: "#D32F2F",  # Red
-    4: "#7B1FA2",  # Purple
-    5: "#C2185B",  # Dark Pink
-    6: "#00897B",  # Teal
-    7: "#E65100",  # Orange
-    8: "#455A64",  # Blue Grey
+    1: "#388E3C",
+    2: "#00897B",
+    3: "#1976D2",
+    4: "#7B1FA2",
+    5: "#C2185B",
+    6: "#F3E309",
+    7: "#E65100",
+    8: "#D32F2F",
 }
 
-covered = """
+base_style = """
     QPushButton {
-        background-color: #2b5c8f;
         color: white;
         border-radius: 5px;
         padding: 6px;
@@ -37,11 +36,23 @@ covered = """
     }
 """
 
-uncovered = """
+covered = base_style + """
+    QPushButton {
+        background-color: #2b5c8f;
+    }
+    QPushButton:hover {
+        background-color: #3a75b5;  /* Lighter blue on hover */
+    }
+    QPushButton:pressed {
+        background-color: #1f4268;  /* Darker blue when clicked */
+    }
+"""
+
+uncovered = base_style + """
     QPushButton {
         background-color: white;
-        border-radius: 5px;
-        padding: 6px;
+        font-size: 14px;
+        font-weight: bold;
     }
     QPushButton:hover {
         background-color: white; 
@@ -51,12 +62,9 @@ uncovered = """
     }
 """
 
-flagged = """
+flagged = base_style + """
     QPushButton {
         background-color: #ffcc00;
-        color: black;
-        border-radius: 5px;
-        padding: 6px;
     }
     QPushButton:hover {
         background-color: #ffd633;
@@ -155,9 +163,11 @@ class GameWindow(QMainWindow):
                 elif cell.state == 2:
                     if cell.adjacent_mines == 0:
                         button.setText(" ")
+                        button.setStyleSheet(uncovered)
                     else:
                         button.setText(str(cell.adjacent_mines))
-                    button.setStyleSheet(uncovered)
+                        number_color = NUMBER_COLORS.get(cell.adjacent_mines)
+                        button.setStyleSheet(f"{uncovered}\nQPushButton {{ color: {number_color}; }}")
                 elif cell.state == 3:
                     button.setText("*")
                     button.setStyleSheet(uncovered)

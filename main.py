@@ -12,7 +12,7 @@ nd ideas a little better.
 Basic Code Template/Outline: Marie Biernacki, Gemini
 """
 
-from game_logic import GameLogic
+from game_logic import Game
 from board_manager import BoardManager
 from PyQt5.QtWidgets import QApplication, QDialog
 from display import BombInputDialog, GameWindow
@@ -28,7 +28,6 @@ def main():
 
     num_mines = setup.num_mines
     window = GameWindow(num_mines)
-    board = window.game.board
     window.show()
     app.exec()
 
