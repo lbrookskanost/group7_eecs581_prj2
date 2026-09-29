@@ -79,6 +79,16 @@ class GameWindow(QMainWindow):
         grid = QGridLayout()
         grid.setSpacing(1)
 
+        for col in range(board.cols):
+            label = QLabel(chr(ord("A") + col))
+            label.setAlignment(Qt.AlignCenter)
+            grid.addWidget(label, 0, col + 1)
+
+        for row in range(board.rows):
+            label = QLabel(str(row + 1))
+            label.setAlignment(Qt.AlignCenter)
+            grid.addWidget(label, row + 1, 0)
+
         self.buttons = []
         for row in range(board.rows):
             button_row = []
@@ -88,7 +98,7 @@ class GameWindow(QMainWindow):
                 button.setStyleSheet(covered)
                 button.clicked.connect(lambda _, r=row, c=col: self.cell_clicked(r, c))
                 button.rightClicked.connect(lambda r=row, c=col: self.cell_right_clicked(r, c))
-                grid.addWidget(button, row, col)
+                grid.addWidget(button, row + 1, col + 1)
                 button_row.append(button)
             self.buttons.append(button_row)
 
