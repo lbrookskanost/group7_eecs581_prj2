@@ -16,7 +16,7 @@ from PyQt5.QtWidgets import QApplication, QDialog
 
 from game_logic import Game
 from board_manager import BoardManager
-from display import BombInputDialog, GameWindow
+from display import StartGameDialog, GameWindow
 
 def main():
     
@@ -29,7 +29,9 @@ def main():
 
     app = QApplication([])
 
-    setup = BombInputDialog() #blocks until a valid mine count is entered or the user cancels
+    # blocks until a valid mine count is entered or the user cancels
+    # also waits for difficulty input
+    setup = StartGameDialog()
     print("Starting Minesweeper Setup...")
     if setup.exec() != QDialog.Accepted:
         return
