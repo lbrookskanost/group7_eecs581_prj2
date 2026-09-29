@@ -19,7 +19,24 @@ Basic Code Template/Outline: Marie Biernacki, Gemini
 """
 
 import random # need for random mine placement
-from cell_real import Cell #changed to match cell_real.py
+
+class Cell:
+    """
+    Task: Cell Object (Greeshma)
+    
+    Attributes:
+    - state (int): 0=covered, 1=flagged, 2=uncovered number, 3=mine
+    - is_mine (bool): True if mine, False otherwise
+    - adjacent_mines (int): Number of adjacent mines (0-8)
+    """
+    def __init__(self):
+        # Initialize the following attributes to their default starting values:
+        # self.state
+        # self.is_mine
+        # self.adjacent_mines
+        self.state = 0
+        self.is_mine = False
+        self.adjacent_mines = 0
 
 class BoardManager:
     """
