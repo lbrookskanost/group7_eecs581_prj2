@@ -11,6 +11,7 @@ from PyQt5.QtWidgets import (
     QButtonGroup,
     QVBoxLayout,
     QWidget,
+    QApplication,
 )
 from game_logic import Game
 from ai_solver import Difficulty, Mode
@@ -33,6 +34,7 @@ class StartGameDialog(QDialog):
 
         self.setWindowTitle("Minesweeper Setup")
         self.num_mines = None
+        self.endgame_shown = False
 
         self.bomb_input = QLineEdit()
         self.bomb_input.setMaxLength(2)
@@ -147,6 +149,7 @@ class GameWindow(QMainWindow):
         self.setWindowTitle("Minesweeper")
         self.game = Game(num_mines)
         self.timer = QTimer(self)
+        self.endgame_shown = False
 
         board = self.game.board
         grid = QGridLayout()
