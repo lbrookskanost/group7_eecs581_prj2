@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import (
     QPushButton,
     QVBoxLayout,
     QWidget,
+    QApplication,
 )
 from game_logic import Game
 from styles import NUMBER_COLORS, covered, flagged, uncovered
@@ -30,6 +31,7 @@ class BombInputDialog(QDialog):
 
         self.setWindowTitle("Minesweeper Setup")
         self.num_mines = None
+        self.endgame_shown = False
 
         self.input = QLineEdit()
         self.input.setMaxLength(2)
@@ -74,6 +76,7 @@ class GameWindow(QMainWindow):
 
         self.setWindowTitle("Minesweeper")
         self.game = Game(num_mines)
+        self.endgame_shown = False
 
         board = self.game.board
         grid = QGridLayout()
@@ -136,7 +139,8 @@ class GameWindow(QMainWindow):
 
     def update_ui(self):
         board = self.game.board
-        self.state_label.setText(self.game.check_game_state())
+        state = self.game.check_game_state()
+        self.state_label.setText(state)
         self.flag_label.setText(f"Flags: {self.game.remaining_flags}")
         for row in range(board.rows):
             for col in range(board.cols):
@@ -159,3 +163,33 @@ class GameWindow(QMainWindow):
                     button.setStyleSheet(uncovered)
                 else:
                     raise ValueError("Invalid cell state.")
+                
+        if state in ("Victory", "Game Over: Loss") and not self.endgame_shown:
+            self.endgame_shown = True
+
+            for button_row in self.buttons:
+                for button in button_row:
+                    button.setEnabled(False)
+
+            if state == "Victory":
+                self.endgameScreen(won=True)
+            else:
+                self.endgameScreen(won=False)    
+
+    def endgameScreen(self, won):
+        dialog = QDialog(self)
+
+        if won:
+            title = "Congratulations! You've won!"
+        else:
+            title = "Game Over"
+
+        dialog.setWindowTitle(title)
+        layout = QVBoxLayout(dialog)
+        layout.addWidget(QLabel(title))
+        quit_button = QPushButton("Quit")
+        quit_button.clicked.connect(QApplication.instance().quit)
+        layout.addWidget(quit_button)
+        dialog.exec_()
+
+
