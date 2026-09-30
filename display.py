@@ -1,4 +1,4 @@
-from PyQt5.QtCore import QSize, Qt, pyqtSignal
+from PyQt5.QtCore import QSize, Qt, pyqtSignal, QTimer
 from PyQt5.QtWidgets import (
     QDialog,
     QGridLayout,
@@ -7,11 +7,15 @@ from PyQt5.QtWidgets import (
     QLineEdit,
     QMainWindow,
     QPushButton,
+    QRadioButton,
+    QButtonGroup,
     QVBoxLayout,
     QWidget,
     QApplication,
 )
 from game_logic import Game
+from ai_solver import Difficulty, Mode
+from leaderboard import update_leaderboard
 from styles import NUMBER_COLORS, covered, flagged, uncovered
 
 
@@ -24,8 +28,7 @@ class CellButton(QPushButton):
         else:
             super().mousePressEvent(event)  # keep normal left-click/clicked() behavior
 
-
-class BombInputDialog(QDialog):
+class StartGameDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -33,37 +36,106 @@ class BombInputDialog(QDialog):
         self.num_mines = None
         self.endgame_shown = False
 
-        self.input = QLineEdit()
-        self.input.setMaxLength(2)
-        self.input.setPlaceholderText("10 - 20")
-        self.error = QLabel("")
+        self.bomb_input = QLineEdit()
+        self.bomb_input.setMaxLength(2)
+        self.bomb_input.setPlaceholderText("10 - 20")
+        self.bomb_error = QLabel("")
         self.start_button = QPushButton("Start Game")
+        self.mode_btns = []
+        self.diff_btns = [QLabel("Choose AI Difficulty:")]
+        self.selected_mode = Mode.NONE
+        self.selected_difficulty = Difficulty.HARD
 
-        layout = QVBoxLayout()
+        self._initialize_ai_prompt()
+
+        layout = QVBoxLayout(self)
         layout.addWidget(QLabel("Enter number of mines (10-20):"))
-        layout.addWidget(self.input)
-        layout.addWidget(self.error)
-        layout.addWidget(self.start_button)
+        layout.addWidget(self.bomb_input)
+        layout.addWidget(self.bomb_error)
+        layout.addWidget(QLabel("Choose AI Mode:"))
+        for btn in self.mode_btns:
+            layout.addWidget(btn)
+        for btn in self.diff_btns:
+            layout.addWidget(btn)
         self.setLayout(layout)
 
-        self.input.returnPressed.connect(self.submit)
+
+        layout.addWidget(self.start_button)
+        self.bomb_input.returnPressed.connect(self.submit)
         self.start_button.clicked.connect(self.submit)
+
+    def _initialize_ai_prompt(self):
+        options = [
+            ("Interactive" , Mode.INTERACTIVE ),
+            ("Solver"      , Mode.SOLVER      ),
+            ("None"        , Mode.NONE        )
+        ]
+
+        ai_difficulty = [
+            ("Easy"   , Difficulty.EASY   ),
+            ("Medium" , Difficulty.MEDIUM ),
+            ("Hard"   , Difficulty.HARD   )
+        ]
+
+        btn_set = QButtonGroup(self);
+        difficulty_set = QButtonGroup(self);
+        self.diff_btns[0].setVisible(False);
+
+        for (txt, val) in options:
+            btn = QRadioButton(txt)
+            self.mode_btns.append(btn)
+            if val == Mode.INTERACTIVE:
+                btn.clicked.connect(lambda: self._set_visibility(Mode.INTERACTIVE))
+            elif val == Mode.SOLVER:
+                btn.clicked.connect(lambda: self._set_visibility(Mode.SOLVER))
+            elif val == Mode.NONE:
+                btn.clicked.connect(lambda: self._set_visibility(Mode.NONE))
+            btn_set.addButton(btn)
+
+        for (txt, val) in ai_difficulty:
+            btn = QRadioButton(txt)
+            btn.setVisible(False)
+            self.diff_btns.append(btn)
+            difficulty_set.addButton(btn)
+            if val == Difficulty.EASY:
+                btn.clicked.connect(lambda: self._set_diff(Difficulty.EASY))
+            elif val == Difficulty.MEDIUM:
+                btn.clicked.connect(lambda: self._set_diff(Difficulty.MEDIUM))
+            elif val == Difficulty.HARD:
+                btn.clicked.connect(lambda: self._set_diff(Difficulty.HARD))
+
+        btn_set.buttons()[-1].setChecked(True)
+        difficulty_set.buttons()[-1].setChecked(True)
+
+
+    def _set_visibility(self, value):
+        self.selected_mode = value
+        if value != Mode.NONE:
+            for btns in self.diff_btns:
+                btns.setVisible(True)
+        else:
+            for btns in self.diff_btns:
+                btns.setVisible(False)
+
+    def _set_diff(self, value):
+        self.diff_mode = value
+
 
     def check_bomb_input(self, input_text):
         try:
             num_mines = int(input_text)
         except ValueError:
-            self.error.setText("Please enter a valid number.")
+            self.bomb_error.setText("Please enter a valid number.")
             return None
 
         if 10 <= num_mines <= 20:
             return num_mines
 
-        self.error.setText("Please enter a number between 10 and 20.")
+        self.bomb_error.setText("Please enter a number between 10 and 20.")
         return None
 
     def submit(self):
-        num_mines = self.check_bomb_input(self.input.text())
+        num_mines = self.check_bomb_input(self.bomb_input.text())
         if num_mines is None:
             return
         self.num_mines = num_mines
@@ -76,6 +148,7 @@ class GameWindow(QMainWindow):
 
         self.setWindowTitle("Minesweeper")
         self.game = Game(num_mines)
+        self.timer = QTimer(self)
         self.endgame_shown = False
 
         board = self.game.board
@@ -106,8 +179,10 @@ class GameWindow(QMainWindow):
             self.buttons.append(button_row)
 
         self.flag_label = QLabel(f"Flags: {self.game.remaining_flags}")
-        self.timer_label = QLabel("PUT TIMER HERE")
+        self.timer_label = QLabel("00:00.00")
         self.state_label = QLabel(self.game.check_game_state())
+
+        self.timer.timeout.connect(self.update_time)
 
         top_bar = QHBoxLayout()
         top_bar.addWidget(self.flag_label)
@@ -130,7 +205,10 @@ class GameWindow(QMainWindow):
         self.adjustSize()
 
     def cell_clicked(self, row, col):
+        was_first = self.game.first_uncover
         self.game.uncover_cell(row, col)
+        if was_first:
+            self.timer.start()
         self.update_ui()
 
     def cell_right_clicked(self, row, col):
@@ -139,8 +217,13 @@ class GameWindow(QMainWindow):
 
     def update_ui(self):
         board = self.game.board
-        state = self.game.check_game_state()
-        self.state_label.setText(state)
+        game_state = self.game.check_game_state()
+        if game_state != "Playing":
+            self.timer.stop()
+            if game_state == "Victory":
+                update_leaderboard(self.timer_label.text())
+        self.state_label.setText(game_state)
+        self.timer_label.setText(self.game.get_timer())
         self.flag_label.setText(f"Flags: {self.game.remaining_flags}")
         for row in range(board.rows):
             for col in range(board.cols):
@@ -163,33 +246,7 @@ class GameWindow(QMainWindow):
                     button.setStyleSheet(uncovered)
                 else:
                     raise ValueError("Invalid cell state.")
-                
-        if state in ("Victory", "Game Over: Loss") and not self.endgame_shown:
-            self.endgame_shown = True
 
-            for button_row in self.buttons:
-                for button in button_row:
-                    button.setEnabled(False)
-
-            if state == "Victory":
-                self.endgameScreen(won=True)
-            else:
-                self.endgameScreen(won=False)    
-
-    def endgameScreen(self, won):
-        dialog = QDialog(self)
-
-        if won:
-            title = "Congratulations! You've won!"
-        else:
-            title = "Game Over"
-
-        dialog.setWindowTitle(title)
-        layout = QVBoxLayout(dialog)
-        layout.addWidget(QLabel(title))
-        quit_button = QPushButton("Quit")
-        quit_button.clicked.connect(QApplication.instance().quit)
-        layout.addWidget(quit_button)
-        dialog.exec_()
-
-
+    def update_time(self):
+        s = self.game.get_timer()
+        self.timer_label.setText(s)

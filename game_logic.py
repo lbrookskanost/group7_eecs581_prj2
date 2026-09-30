@@ -13,7 +13,7 @@ External Sources: https://www.askpython.com/python/examples/create-minesweeper-u
 Basic Code Template/Outline: Marie Biernacki, Gemini
 """
 
-from PyQt5.QtCore import QSize, Qt
+from PyQt5.QtCore import QSize, Qt, QElapsedTimer
 from PyQt5.QtWidgets import QLineEdit, QMainWindow, QApplication, QPushButton
 from board_manager import BoardManager
 
@@ -24,6 +24,7 @@ class Game():
         self.remaining_flags = num_mines
         self.game_state = "Playing"
         self.first_uncover = True
+        self.elapsed = QElapsedTimer() # timer in ms
 
     def uncover_cell(self, row: int, col: int) -> None:
             if row < 0 or row >= self.board.rows or col < 0 or col >= self.board.cols: #check if the coordinates are outside the board
@@ -32,6 +33,7 @@ class Game():
             if self.first_uncover: #place mines around the first click so it is always safe
                 self.board.place_mines(self.num_mines, row, col)
                 self.first_uncover = False
+                self.start_timer()
 
             cell = self.board.get_cell(row, col) #get the selected cell
     
@@ -126,3 +128,15 @@ class Game():
         # The player has won.
         self.game_state = "Victory"
         return self.game_state    
+
+    def start_timer(self):
+        self.elapsed.start()
+
+    def get_timer(self):
+        if not self.elapsed.isValid():
+            return "00:00:00"
+        
+        ms = self.elapsed.elapsed()
+        minutes, ms = divmod(ms, 60_000)
+        seconds, ms = divmod(ms, 1000)
+        return f"{minutes:02}:{seconds:02}.{ms // 10:02}"
