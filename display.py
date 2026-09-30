@@ -1,4 +1,4 @@
-from PyQt5.QtCore import QSize, Qt, pyqtSignal
+from PyQt5.QtCore import QSize, Qt, pyqtSignal, QTimer
 from PyQt5.QtWidgets import (
     QDialog,
     QGridLayout,
@@ -14,6 +14,7 @@ from PyQt5.QtWidgets import (
 )
 from game_logic import Game
 from ai_solver import Difficulty, Mode
+from leaderboard import update_leaderboard
 from styles import NUMBER_COLORS, covered, flagged, uncovered
 
 
@@ -145,6 +146,7 @@ class GameWindow(QMainWindow):
 
         self.setWindowTitle("Minesweeper")
         self.game = Game(num_mines)
+        self.timer = QTimer(self)
 
         board = self.game.board
         grid = QGridLayout()
@@ -174,8 +176,10 @@ class GameWindow(QMainWindow):
             self.buttons.append(button_row)
 
         self.flag_label = QLabel(f"Flags: {self.game.remaining_flags}")
-        self.timer_label = QLabel("PUT TIMER HERE")
+        self.timer_label = QLabel("00:00.00")
         self.state_label = QLabel(self.game.check_game_state())
+
+        self.timer.timeout.connect(self.update_time)
 
         top_bar = QHBoxLayout()
         top_bar.addWidget(self.flag_label)
@@ -198,7 +202,10 @@ class GameWindow(QMainWindow):
         self.adjustSize()
 
     def cell_clicked(self, row, col):
+        was_first = self.game.first_uncover
         self.game.uncover_cell(row, col)
+        if was_first:
+            self.timer.start()
         self.update_ui()
 
     def cell_right_clicked(self, row, col):
@@ -207,7 +214,13 @@ class GameWindow(QMainWindow):
 
     def update_ui(self):
         board = self.game.board
-        self.state_label.setText(self.game.check_game_state())
+        game_state = self.game.check_game_state()
+        if game_state != "Playing":
+            self.timer.stop()
+            if game_state == "Victory":
+                update_leaderboard(self.timer_label.text())
+        self.state_label.setText(game_state)
+        self.timer_label.setText(self.game.get_timer())
         self.flag_label.setText(f"Flags: {self.game.remaining_flags}")
         for row in range(board.rows):
             for col in range(board.cols):
@@ -230,3 +243,7 @@ class GameWindow(QMainWindow):
                     button.setStyleSheet(uncovered)
                 else:
                     raise ValueError("Invalid cell state.")
+
+    def update_time(self):
+        s = self.game.get_timer()
+        self.timer_label.setText(s)
