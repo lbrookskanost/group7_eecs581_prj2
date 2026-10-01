@@ -37,7 +37,11 @@ class Game():
 
             cell = self.board.get_cell(row, col) #get the selected cell
     
-            if cell.state == 1 or cell.state == 2 or cell.state == 3: #check if the cell is flagged or already uncovered
+            if cell.state == 2: #clicking a revealed number attempts to chord
+                self.chord_cell(row, col)
+                return
+
+            if cell.state == 1 or cell.state == 3: #check if the cell is flagged or already a revealed mine
                 return #stop if the cell cannot be uncovered
     
             if cell.is_mine: #check if the selected cell contains a mine
@@ -48,6 +52,30 @@ class Game():
                 self.recursive_reveal(row, col) #recursively uncover the cell and its neighbors
             else: #handle cells that have adjacent mines
                 cell.state = 2 #uncover the selected cell
+
+    def chord_cell(self, row: int, col: int) -> None:
+        cell = self.board.get_cell(row, col)
+        neighbors = self.board.get_neighbors(row, col)
+        flag_count = sum(neighbor.state == 1 for neighbor in neighbors)
+
+        if cell.adjacent_mines == 0 or flag_count != cell.adjacent_mines:
+            return
+
+        for neighbor_row in range(max(0, row - 1), min(self.board.rows, row + 2)):
+            for neighbor_col in range(max(0, col - 1), min(self.board.cols, col + 2)):
+                if neighbor_row == row and neighbor_col == col:
+                    continue
+
+                neighbor = self.board.get_cell(neighbor_row, neighbor_col)
+                if neighbor.state != 0:
+                    continue
+
+                if neighbor.is_mine:
+                    neighbor.state = 3
+                elif neighbor.adjacent_mines == 0:
+                    self.recursive_reveal(neighbor_row, neighbor_col)
+                else:
+                    neighbor.state = 2
 
     def recursive_reveal(self, row: int, col: int) -> None:
         if row < 0 or row >= self.board.rows or col < 0 or col >= self.board.cols: #check if the coordinates are outside the board
