@@ -246,6 +246,35 @@ class GameWindow(QMainWindow):
                     button.setStyleSheet(uncovered)
                 else:
                     raise ValueError("Invalid cell state.")
+                
+        if game_state in ("Victory", "Game Over: Loss") and not self.endgame_shown:
+            self.endgame_shown = True
+
+            for button_row in self.buttons:
+                for button in button_row:
+                    button.setDisabled(False)
+
+            if game_state == "Victory":
+                self.endGameScreen(won=True)
+            else: 
+                self.endGameScreen(won=False)
+
+    def endGameScreen(self, won): #this function cretes a window afte a bomb is chosen or the game is won.
+        dialog = QDialog(self) #creating the dialog window
+
+        if won:
+            title = "Congratulations! you've Won!" # this will determin what to dispplay based on the gamestate given 
+        else: 
+            title = "Game Over"
+
+
+        dialog.setWindowTitle(title) # this will set the title in the window
+        layout = QVBoxLayout(dialog)
+        layout.addWidget(QLabel(title))
+        quit_button = QPushButton("Quit")
+        quit_button.clicked.connect(QApplication.instance().quit) # a button to quit the game and close the window and program if selected
+        layout.addWidget(quit_button)
+        dialog.exec_()
 
     def update_time(self):
         s = self.game.get_timer()
