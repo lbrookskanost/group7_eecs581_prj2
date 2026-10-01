@@ -246,6 +246,35 @@ class GameWindow(QMainWindow):
                     button.setStyleSheet(uncovered)
                 else:
                     raise ValueError("Invalid cell state.")
+                
+        if game_state in ("Victory", "Game Over: Loss") and not self.endgame_shown:
+            self.endgame_shown = True
+
+            for button_row in self.buttons:
+                for button in button_row:
+                    button.setDisabled(False)
+
+            if game_state == "Victory":
+                self.endGameScreen(won=True)
+            else: 
+                self.endGameScreen(won=False)
+
+    def endGameScreen(self, won):
+        dialog = QDialog(self)
+
+        if won:
+            title = "Congratulations! you've Won!"
+        else: 
+            title = "Game Over"
+
+
+        dialog.setWindowTitle(title)
+        layout = QVBoxLayout(dialog)
+        layout.addWidget(QLabel(title))
+        quit_button = QPushButton("Quit")
+        quit_button.clicked.connect(QApplication.instance().quit)
+        layout.addWidget(quit_button)
+        dialog.exec_()
 
     def update_time(self):
         s = self.game.get_timer()
