@@ -259,20 +259,20 @@ class GameWindow(QMainWindow):
             else: 
                 self.endGameScreen(won=False)
 
-    def endGameScreen(self, won):
-        dialog = QDialog(self)
+    def endGameScreen(self, won): #this function cretes a window afte a bomb is chosen or the game is won.
+        dialog = QDialog(self) #creating the dialog window
 
         if won:
-            title = "Congratulations! you've Won!"
+            title = "Congratulations! you've Won!" # this will determin what to dispplay based on the gamestate given 
         else: 
             title = "Game Over"
 
 
-        dialog.setWindowTitle(title)
+        dialog.setWindowTitle(title) # this will set the title in the window
         layout = QVBoxLayout(dialog)
         layout.addWidget(QLabel(title))
         quit_button = QPushButton("Quit")
-        quit_button.clicked.connect(QApplication.instance().quit)
+        quit_button.clicked.connect(QApplication.instance().quit) # a button to quit the game and close the window and program if selected
         layout.addWidget(quit_button)
         dialog.exec_()
 
