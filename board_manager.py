@@ -95,9 +95,13 @@ class BoardManager:
         # The first clicked cell is excluded to guarantee first-click safety.
         available_cells = []
 
+        safe_spots = [(first_row-1, first_col-1), (first_row-1, first_col), (first_row-1, first_col+1), 
+                      (first_row, first_col-1), (first_row, first_col), (first_row, first_col+1), 
+                      (first_row+1, first_col-1), (first_row+1, first_col), (first_row+1, first_col+1)]
+
         for row in range(self.rows):
             for col in range(self.cols):
-                if row != first_row or col != first_col:
+                if (row, col) not in safe_spots:
                     available_cells.append((row, col))
 
         # Randomly select locations for the mines.
