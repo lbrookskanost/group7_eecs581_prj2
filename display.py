@@ -221,7 +221,7 @@ class GameWindow(QMainWindow):
         if game_state != "Playing":
             self.timer.stop()
             if game_state == "Victory":
-                update_leaderboard(self.timer_label.text())
+                update_leaderboard(self.game.board.num_mines, self.timer_label.text())
         self.state_label.setText(game_state)
         self.timer_label.setText(self.game.get_timer())
         self.flag_label.setText(f"Flags: {self.game.remaining_flags}")
