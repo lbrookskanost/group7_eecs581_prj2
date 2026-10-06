@@ -1,17 +1,19 @@
 from pathlib import Path
-LEADERBOARD_FILE_NAME = "leaderboard.txt"
+import json
 
-def update_leaderboard(time):
+LEADERBOARD_FILE_NAME = "leaderboard.json"
 
+def update_leaderboard(n_bombs, time):
     leaderboard_path = Path(LEADERBOARD_FILE_NAME)
 
     if leaderboard_path.exists():
-        with open(LEADERBOARD_FILE_NAME, "r+") as file:
-            leaderboard = file.read()
-            for leaderboard_char, time_char in zip(leaderboard, time):
-                if time_char < leaderboard_char:
-                    file.write(time)
-                    break
+        with open(LEADERBOARD_FILE_NAME, "r") as file:
+            data = json.load(file)
+        if n_bombs not in data or data[str(n_bombs)] > time:
+            data[str(n_bombs)] = time
+        with open(LEADERBOARD_FILE_NAME, "w") as file:
+            json.dump(data, file)
     else:
         with open(LEADERBOARD_FILE_NAME, "w") as file:
-            file.write(time)
+            data = { n_bombs : time}
+            json.dump(data, file)
