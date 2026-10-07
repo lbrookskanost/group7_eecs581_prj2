@@ -65,8 +65,9 @@ class BoardManager:
 
     def get_flagged_neighbors(self, row: int, col: int) -> int:
         flagged_neighbors = 0
-        if row < 0 or row >= self.rows or col < 0 or col >= self.cols: #check if row/col is outside board
-            return 0
+        if (row < 0 or row >= self.rows or
+          col < 0 or col >= self.cols): #check if row/col is outside board
+            return flagged_neighbors
 
         for row_off in range(-1, 2):
             for col_off in range(-1, 2):
@@ -80,10 +81,12 @@ class BoardManager:
 
         return flagged_neighbors
 
-    def covered_neighbors(self, row: int, col: int) -> [(int, int)]:
+    def covered_neighbors(self, row: int, col: int) -> list[(int, int)]:
         neighbors = []
-        if row < 0 or row >= self.rows or col < 0 or col >= self.cols: #check if row/col is outside board
-            return []
+        if (row < 0 or row >= self.rows or
+          col < 0 or col >= self.cols): #check if row/col is outside board
+            return neighbors
+
         for row_off in range(-1, 2):
             for col_off in range(-1, 2):
                 neighbor_row = row + row_off #find row position of neighbor
@@ -95,6 +98,36 @@ class BoardManager:
                     neighbors.append((neighbor_row, neighbor_col))
 
         return neighbors
+
+    def is_potential_1_2_1(self, row: int, col: int) -> bool:
+        if (row < 0 or row >= self.rows or
+          col < 0 or col >= self.cols): #check if row/col is outside board
+            return False
+
+        vert_count = 0
+        # Vertical Neighbors
+        for row_off in range(-1, 2, 2): #skips 0
+          neighbor_row = row + row_off
+          if ( 0 <= neighbor_row < self.rows and
+					  self.grid[neighbor_row][col].state == 2 and # Want to find an uncovered 1
+					  self.grid[neighbor_row][col].adjacent_mines == 1):
+               vert_count += 1
+        if vert_count == 2:
+            return True
+
+        hori_count = 0
+        # Horizontal Neighbors
+        for col_off in range(-1, 2, 2): #skips 0
+          neighbor_col = col + col_off
+          if ( 0 <= neighbor_col < self.cols and
+					  self.grid[row][neighbor_col].state == 2 and
+					  self.grid[row][neighbor_col].adjacent_mines == 1):
+               hori_count += 1
+
+        if hori_count == 2:
+             return True
+
+        return False
 
     def get_neighbors(self, row: int, col: int) -> list:
         

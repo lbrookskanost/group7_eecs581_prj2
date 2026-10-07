@@ -27,13 +27,13 @@ class Mode(Enum):
 class AiSolver:
 	def __init__(self, difficulty: Difficulty):
 		self.difficulty = difficulty;
-		self.covered = set();
+		self.uncover = set();
 		self.fallback = None;
 		self.flag = set();
 
 
 	def clear(self):
-		self.covered = set()
+		self.uncover = set()
 		self.fallback = None
 		self.flag = set()
 
@@ -43,19 +43,31 @@ class AiSolver:
 			for col in range(10):
 				covered = board.covered_neighbors(row, col)
 				cell = board.get_cell(row, col)
+
 				if cell.state == 0:
 					fallback_set.add((row, col))
-				if cell.state != 2:
+
+				if cell.state != 2 or self.difficulty == Difficulty.EASY:
 				    continue
+
 				mine_count = cell.adjacent_mines
 				flagged = board.get_flagged_neighbors(row, col)
-				print(covered, flagged, row, col)
+
+				if cell.adjacent_mines == 2 and self.difficulty == Difficulty.HARD:
+					if board.is_potential_1_2_1(row, col) and len(covered) == 3: #this means we have 1 side empty
+						self.uncover.add(covered.pop(1))
+						for cell in covered:
+							self.flag.add(covered[1])
+
 				if flagged == mine_count:
 					for cell in covered:
-						self.covered.add(cell)
+						self.uncover.add(cell)
 				elif len(covered) + flagged == mine_count:
 					for cell in covered:
 						self.flag.add(cell)
-		if len(self.covered) == len(self.flag) == 0:
+
+
+
+		if len(self.uncover) == len(self.flag) == 0:
 			self.fallback = fallback_set.pop()
 

@@ -118,7 +118,7 @@ class StartGameDialog(QDialog):
                 btns.setVisible(False)
 
     def _set_diff(self, value):
-        self.diff_mode = value
+        self.selected_difficulty = value
 
 
     def check_bomb_input(self, input_text):

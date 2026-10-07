@@ -163,9 +163,8 @@ class Game():
         self.elapsed.start()
 
     def ai_turn(self):
-        self.ai_solver.clear()
         self.ai_solver.generate_changes(self.board)
-        for row, col in self.ai_solver.covered:
+        for row, col in self.ai_solver.uncover:
             self.uncover_cell(row, col)
 
         for row, col in self.ai_solver.flag:
@@ -173,6 +172,8 @@ class Game():
 
         if self.ai_solver.fallback:
             self.uncover_cell(self.ai_solver.fallback[0], self.ai_solver.fallback[1])
+
+        self.ai_solver.clear()
 
         
     def get_timer(self):
