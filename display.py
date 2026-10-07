@@ -18,7 +18,6 @@ from ai_solver import Difficulty, Mode
 from leaderboard import update_leaderboard
 from styles import NUMBER_COLORS, covered, flagged, uncovered
 
-
 class CellButton(QPushButton):
     rightClicked = pyqtSignal()
 
@@ -148,6 +147,7 @@ class GameWindow(QMainWindow):
 
         self.setWindowTitle("Minesweeper")
         self.game = Game(num_mines, ai_difficulty)
+        self.ai_mode = ai_mode
         self.timer = QTimer(self)
         self.endgame_shown = False
 
@@ -191,7 +191,7 @@ class GameWindow(QMainWindow):
         top_bar.addStretch()
         top_bar.addWidget(self.timer_label)
 
-        if ai_mode == Mode.INTERACTIVE:
+        if self.ai_mode == Mode.INTERACTIVE:
             self.help_button = QPushButton("Help Me!")
             top_bar.addWidget(self.help_button)
             self.help_button.clicked.connect(self.ai_turn)
@@ -218,6 +218,9 @@ class GameWindow(QMainWindow):
         self.game.uncover_cell(row, col)
         if was_first:
             self.timer.start()
+            while (self.ai_mode == Mode.SOLVER and
+              self.game.check_game_state() == "Playing"):
+                self.ai_turn()
         self.update_ui()
 
     def cell_right_clicked(self, row, col):

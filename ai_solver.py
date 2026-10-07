@@ -68,6 +68,6 @@ class AiSolver:
 
 
 
-		if len(self.uncover) == len(self.flag) == 0:
+		if len(self.uncover) == len(self.flag) == 0 and len(fallback_set) != 0:
 			self.fallback = fallback_set.pop()
 
