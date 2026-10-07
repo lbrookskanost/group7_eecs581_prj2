@@ -37,7 +37,9 @@ def main():
         return
 
     num_mines = setup.num_mines
-    window = GameWindow(num_mines)
+    ai_mode = setup.selected_mode
+    ai_difficulty = setup.selected_difficulty
+    window = GameWindow(num_mines, ai_mode, ai_difficulty)
     window.show()
     app.exec()
 
