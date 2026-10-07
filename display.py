@@ -190,11 +190,10 @@ class GameWindow(QMainWindow):
         top_bar.addWidget(self.state_label)
         top_bar.addStretch()
         top_bar.addWidget(self.timer_label)
-
+        
         if self.ai_mode == Mode.INTERACTIVE:
             self.help_button = QPushButton("Help Me!")
             top_bar.addWidget(self.help_button)
-            self.help_button.clicked.connect(self.ai_turn)
         #snap to grid
         grid_widget = QWidget()
         grid_widget.setLayout(grid)
@@ -218,6 +217,9 @@ class GameWindow(QMainWindow):
         self.game.uncover_cell(row, col)
         if was_first:
             self.timer.start()
+            if self.ai_mode == Mode.INTERACTIVE:
+                self.help_button.clicked.connect(self.ai_turn)
+
             while (self.ai_mode == Mode.SOLVER and
               self.game.check_game_state() == "Playing"):
                 self.ai_turn()
