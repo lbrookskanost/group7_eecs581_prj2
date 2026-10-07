@@ -38,6 +38,9 @@ class Cell:
         self.is_mine = False
         self.adjacent_mines = 0
 
+    def is_covered(self) -> bool:
+        self.state == 0
+
 class BoardManager:
     """
     Tasks: Board Management (Kaitlyn) & Mine Placement (Lauren)
@@ -59,7 +62,40 @@ class BoardManager:
     def get_cell(self, row: int, col: int) -> Cell:
         
         return self.grid[row][col] #return cell object when given row and column
-    
+
+    def get_flagged_neighbors(self, row: int, col: int) -> int:
+        flagged_neighbors = 0
+        if row < 0 or row >= self.rows or col < 0 or col >= self.cols: #check if row/col is outside board
+            return 0
+
+        for row_off in range(-1, 2):
+            for col_off in range(-1, 2):
+                neighbor_row = row + row_off #find row position of neighbor
+                neighbor_col = col + col_off #find column position of neighbor
+                if ((row_off != 0 or col_off != 0) and
+                  0 <= neighbor_row < self.rows and
+                  0 <= neighbor_col < self.cols and
+					        self.grid[neighbor_row][neighbor_col].state == 1):
+                    flagged_neighbors+=1
+
+        return flagged_neighbors
+
+    def covered_neighbors(self, row: int, col: int) -> [(int, int)]:
+        neighbors = []
+        if row < 0 or row >= self.rows or col < 0 or col >= self.cols: #check if row/col is outside board
+            return []
+        for row_off in range(-1, 2):
+            for col_off in range(-1, 2):
+                neighbor_row = row + row_off #find row position of neighbor
+                neighbor_col = col + col_off #find column position of neighbor
+                if ((row_off != 0 or col_off != 0) and
+                  0 <= neighbor_row < self.rows and
+                  0 <= neighbor_col < self.cols and
+					        self.grid[neighbor_row][neighbor_col].state == 0):
+                    neighbors.append((neighbor_row, neighbor_col))
+
+        return neighbors
+
     def get_neighbors(self, row: int, col: int) -> list:
         
         neighbors = [] #empty list
@@ -73,14 +109,12 @@ class BoardManager:
             for col_offset in range(-1, 2): #check col left, current col, and right col
                 neighbor_row = row+ row_offset #find row position of neighbor
                 neighbor_col = col + col_offset #find column position of neighbor
-
                 if row_offset != 0 or col_offset != 0: #make sure original cell is not counted as it's neighbor
                     if neighbor_row >= 0 and neighbor_row < self.rows: #check neighbor row is in board
                         if neighbor_col >=0  and neighbor_col < self.cols: #check if neighbor col is in board
                             neighbors.append(self.grid[neighbor_row][neighbor_col]) #append valid neighbor cell to list
 
         return neighbors
-
 
 
     def place_mines(self, num_mines: int, first_row: int, first_col: int) -> None:

@@ -143,11 +143,11 @@ class StartGameDialog(QDialog):
 
 
 class GameWindow(QMainWindow):
-    def __init__(self, num_mines):
+    def __init__(self, num_mines, ai_mode: Mode, ai_difficulty: Difficulty):
         super().__init__()
 
         self.setWindowTitle("Minesweeper")
-        self.game = Game(num_mines)
+        self.game = Game(num_mines, ai_difficulty)
         self.timer = QTimer(self)
         self.endgame_shown = False
 
@@ -190,6 +190,11 @@ class GameWindow(QMainWindow):
         top_bar.addWidget(self.state_label)
         top_bar.addStretch()
         top_bar.addWidget(self.timer_label)
+
+        if ai_mode == Mode.INTERACTIVE:
+            self.help_button = QPushButton("Help Me!")
+            top_bar.addWidget(self.help_button)
+            self.help_button.clicked.connect(self.ai_turn)
         #snap to grid
         grid_widget = QWidget()
         grid_widget.setLayout(grid)
@@ -204,6 +209,10 @@ class GameWindow(QMainWindow):
         self.setCentralWidget(container)
         self.adjustSize()
 
+    def ai_turn(self):
+        self.game.ai_turn()
+        self.update_ui()
+	
     def cell_clicked(self, row, col):
         was_first = self.game.first_uncover
         self.game.uncover_cell(row, col)

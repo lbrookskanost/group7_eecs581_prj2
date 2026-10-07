@@ -16,10 +16,12 @@ Basic Code Template/Outline: Marie Biernacki, Gemini
 from PyQt5.QtCore import QSize, Qt, QElapsedTimer
 from PyQt5.QtWidgets import QLineEdit, QMainWindow, QApplication, QPushButton
 from board_manager import BoardManager
+from ai_solver import AiSolver, Difficulty
 
 class Game():
-    def __init__(self, num_mines):
+    def __init__(self, num_mines, ai_difficulty: Difficulty):
         self.board = BoardManager()
+        self.ai_solver = AiSolver(ai_difficulty)
         self.num_mines = num_mines
         self.remaining_flags = num_mines
         self.game_state = "Playing"
@@ -160,6 +162,19 @@ class Game():
     def start_timer(self):
         self.elapsed.start()
 
+    def ai_turn(self):
+        self.ai_solver.clear()
+        self.ai_solver.generate_changes(self.board)
+        for row, col in self.ai_solver.covered:
+            self.uncover_cell(row, col)
+
+        for row, col in self.ai_solver.flag:
+            self.toggle_flag(row, col)
+
+        if self.ai_solver.fallback:
+            self.uncover_cell(self.ai_solver.fallback[0], self.ai_solver.fallback[1])
+
+        
     def get_timer(self):
         if not self.elapsed.isValid():
             return "00:00:00"
