@@ -18,7 +18,6 @@ from ai_solver import Difficulty, Mode
 from leaderboard import update_leaderboard
 from styles import NUMBER_COLORS, covered, flagged, uncovered
 
-
 class CellButton(QPushButton):
     rightClicked = pyqtSignal()
 
@@ -118,7 +117,7 @@ class StartGameDialog(QDialog):
                 btns.setVisible(False)
 
     def _set_diff(self, value):
-        self.diff_mode = value
+        self.selected_difficulty = value
 
 
     def check_bomb_input(self, input_text):
@@ -143,11 +142,12 @@ class StartGameDialog(QDialog):
 
 
 class GameWindow(QMainWindow):
-    def __init__(self, num_mines):
+    def __init__(self, num_mines, ai_mode: Mode, ai_difficulty: Difficulty):
         super().__init__()
 
         self.setWindowTitle("Minesweeper")
-        self.game = Game(num_mines)
+        self.game = Game(num_mines, ai_difficulty)
+        self.ai_mode = ai_mode
         self.timer = QTimer(self)
         self.endgame_shown = False
 
@@ -190,6 +190,10 @@ class GameWindow(QMainWindow):
         top_bar.addWidget(self.state_label)
         top_bar.addStretch()
         top_bar.addWidget(self.timer_label)
+        
+        if self.ai_mode == Mode.INTERACTIVE:
+            self.help_button = QPushButton("Help Me!")
+            top_bar.addWidget(self.help_button)
         #snap to grid
         grid_widget = QWidget()
         grid_widget.setLayout(grid)
@@ -204,11 +208,21 @@ class GameWindow(QMainWindow):
         self.setCentralWidget(container)
         self.adjustSize()
 
+    def ai_turn(self):
+        self.game.ai_turn()
+        self.update_ui()
+	
     def cell_clicked(self, row, col):
         was_first = self.game.first_uncover
         self.game.uncover_cell(row, col)
         if was_first:
             self.timer.start()
+            if self.ai_mode == Mode.INTERACTIVE:
+                self.help_button.clicked.connect(self.ai_turn)
+
+            while (self.ai_mode == Mode.SOLVER and
+              self.game.check_game_state() == "Playing"):
+                self.ai_turn()
         self.update_ui()
 
     def cell_right_clicked(self, row, col):
@@ -220,8 +234,8 @@ class GameWindow(QMainWindow):
         game_state = self.game.check_game_state()
         if game_state != "Playing":
             self.timer.stop()
-            if game_state == "Victory":
-                update_leaderboard(self.game.board.num_mines, self.timer_label.text())
+            if game_state == "Victory" and self.ai_mode != Mode.SOLVER:
+                update_leaderboard(self.game.board.num_mines, self.timer_label.text(), self.ai_mode)
         self.state_label.setText(game_state)
         self.timer_label.setText(self.game.get_timer())
         self.flag_label.setText(f"Flags: {self.game.remaining_flags}")
@@ -246,6 +260,35 @@ class GameWindow(QMainWindow):
                     button.setStyleSheet(uncovered)
                 else:
                     raise ValueError("Invalid cell state.")
+                
+        if game_state in ("Victory", "Game Over: Loss") and not self.endgame_shown:
+            self.endgame_shown = True
+
+            for button_row in self.buttons:
+                for button in button_row:
+                    button.setDisabled(False)
+
+            if game_state == "Victory":
+                self.endGameScreen(won=True)
+            else: 
+                self.endGameScreen(won=False)
+
+    def endGameScreen(self, won): #this function cretes a window afte a bomb is chosen or the game is won.
+        dialog = QDialog(self) #creating the dialog window
+
+        if won:
+            title = "Congratulations! you've Won!" # this will determin what to dispplay based on the gamestate given 
+        else: 
+            title = "Game Over"
+
+
+        dialog.setWindowTitle(title) # this will set the title in the window
+        layout = QVBoxLayout(dialog)
+        layout.addWidget(QLabel(title))
+        quit_button = QPushButton("Quit")
+        quit_button.clicked.connect(QApplication.instance().quit) # a button to quit the game and close the window and program if selected
+        layout.addWidget(quit_button)
+        dialog.exec_()
 
     def update_time(self):
         s = self.game.get_timer()
