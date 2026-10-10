@@ -1,3 +1,12 @@
+"""
+Module Name: display.py
+Class Names: CellButton, GameWindow, StartGameDIalog
+
+Description: display.py handles all UI related function calls/interfaces 
+
+Authors: Sean Crosby, Eyassu Mongalo, Lillian Brooks-Kanost
+Creation Date(s): 9/28/2026
+"""
 from PyQt5.QtCore import QSize, Qt, pyqtSignal, QTimer
 from PyQt5.QtWidgets import (
     QDialog,

@@ -6,7 +6,7 @@ Description: This manages the game logic, such as uncovering cells, recursively 
 Inputs: board_manager. uncover_cell() and toggle_flag() take a row and column to identify the selected cell.
 Outputs: uncover_cell() and toggle_flag() update the state of the selected cells. check_game_state() returns "Playing", "Game Over: Loss", or "Victory".
 
-Authors: Ximena Bustos, Jaydine Stiles
+Authors: Ximena Bustos, Jaydine Stiles, Caleb Neil, Sean Crosby, Thad Flournoy, Eyassu Mongalo
 Creation Date(s): 09/14/26
 External Sources: https://www.askpython.com/python/examples/create-minesweeper-using-python, ChatGPT
 

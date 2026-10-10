@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Author: Lillian Brooks-Kanost
 set -e
 
 # jump to the folder this script lives in (follows symlinks too)

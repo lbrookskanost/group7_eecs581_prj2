@@ -1,3 +1,14 @@
+"""
+Module Name: ai_solver.py
+Class Name: AI Solver
+
+Description: leaderboard.py handles updating the leaderboard
+    aswell as loading into memory to be displayed on screen
+Inputs: number of bombs, time score, & AI Mode
+
+Authors: Calen Neil and Eyassu Mongalo
+Creation Date(s): 9/30/2026
+"""
 from pathlib import Path
 import json
 from ai_solver import Mode

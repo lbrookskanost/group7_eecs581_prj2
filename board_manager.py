@@ -9,7 +9,7 @@ Inputs: Row and column coordinates and mines
 Outputs: Cell objects and their neighboring cells, updates board with mine
         locations 
 
-Authors: Kaitlyn Bedgood, Lauren Lee
+Authors: Kaitlyn Bedgood, Lauren Lee, Sean Crosby, Eyassu Mongalo, Lillian Brooks-Kanost
 Creation Date(s): 9/12/2026
 External Sources:https://www.geeksforgeeks.org/python/python-using-2d-arrays-lists-the-right-way/
                 https://www.geeksforgeeks.org/python/multi-dimensional-lists-in-python/
@@ -21,14 +21,6 @@ Basic Code Template/Outline: Marie Biernacki, Gemini
 import random # need for random mine placement
 
 class Cell:
-    """
-    Task: Cell Object (Greeshma)
-    
-    Attributes:
-    - state (int): 0=covered, 1=flagged, 2=uncovered number, 3=mine
-    - is_mine (bool): True if mine, False otherwise
-    - adjacent_mines (int): Number of adjacent mines (0-8)
-    """
     def __init__(self):
         # Initialize the following attributes to their default starting values:
         # self.state
@@ -99,10 +91,11 @@ class BoardManager:
 
         return neighbors
 
-    def is_potential_1_2_1(self, row: int, col: int) -> bool:
+    def get_potential_1_2_1(self, row: int, col: int) -> ([int], [int], [int]):
+        unflag, uncover, flag = [], [], []
         if (row < 0 or row >= self.rows or
           col < 0 or col >= self.cols): #check if row/col is outside board
-            return False
+            return (unflag, uncover, flag)
 
         vert_count = 0
         # Vertical Neighbors
@@ -113,7 +106,12 @@ class BoardManager:
 					  self.grid[neighbor_row][col].adjacent_mines == 1):
                vert_count += 1
         if vert_count == 2:
-            return True
+            for row_off in range(-1, 2, 2): #skips 0
+                neighbor_row = row + row_off
+                if ( 0 <= neighbor_row < self.rows and
+                  self.grid[neighbor_row][col].state == 2 and # Want to find an uncovered 1
+                  self.grid[neighbor_row][col].adjacent_mines == 1):
+                    vert_count += 1
 
         hori_count = 0
         # Horizontal Neighbors
@@ -127,7 +125,7 @@ class BoardManager:
         if hori_count == 2:
              return True
 
-        return False
+        return (unflag, uncover, flag)
 
     def get_neighbors(self, row: int, col: int) -> list:
         
