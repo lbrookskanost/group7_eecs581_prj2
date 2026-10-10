@@ -21,6 +21,12 @@ Basic Code Template/Outline: Marie Biernacki, Gemini
 import random # need for random mine placement
 
 class Cell:
+    """    
+    Attributes:
+    - state (int): 0=covered, 1=flagged, 2=uncovered number, 3=mine
+    - is_mine (bool): True if mine, False otherwise
+    - adjacent_mines (int): Number of adjacent mines (0-8)
+    """
     def __init__(self):
         # Initialize the following attributes to their default starting values:
         # self.state
@@ -97,34 +103,62 @@ class BoardManager:
           col < 0 or col >= self.cols): #check if row/col is outside board
             return (unflag, uncover, flag)
 
-        vert_count = 0
+        vert = True
         # Vertical Neighbors
         for row_off in range(-1, 2, 2): #skips 0
           neighbor_row = row + row_off
-          if ( 0 <= neighbor_row < self.rows and
-					  self.grid[neighbor_row][col].state == 2 and # Want to find an uncovered 1
-					  self.grid[neighbor_row][col].adjacent_mines == 1):
-               vert_count += 1
-        if vert_count == 2:
-            for row_off in range(-1, 2, 2): #skips 0
-                neighbor_row = row + row_off
-                if ( 0 <= neighbor_row < self.rows and
-                  self.grid[neighbor_row][col].state == 2 and # Want to find an uncovered 1
-                  self.grid[neighbor_row][col].adjacent_mines == 1):
-                    vert_count += 1
+          vert = vert and ( 0 <= neighbor_row < self.rows and
+			  self.grid[neighbor_row][col].state == 2 and # Want to find an uncovered 1
+			  self.grid[neighbor_row][col].adjacent_mines == 1)
+        if vert:
+            if col - 1 >= 0:
+                if self.grid[row][col - 1].state == 1:
+                    unflag.append((row, col-1))
+                uncover.append((row, col-1))
+            
+            if col + 1 < self.cols:
+                if self.grid[row][col + 1].state == 1:
+                    unflag.append((row, col+1))
+                uncover.append((row, col+1))
 
-        hori_count = 0
+            for col_off in range(-1, 2, 2): #skips 0
+                for row_off in range(-1, 2, 2): #skips 0
+                    neighbor_row = row + row_off
+                    neighbor_col = col + col_off
+                    if ( 0 <= neighbor_row < self.rows and
+                      0 <= neighbor_col < self.cols and
+                      self.grid[neighbor_row][neighbor_col].state == 2):
+                        if self.grid[neighbor_row][col - col_off].state == 0:
+                            # we guarantee that col - offset exists if the value at col+offset is uncovered       
+                            flag.append((neighbor_row, col - col_off)) 
+        hori = True
         # Horizontal Neighbors
         for col_off in range(-1, 2, 2): #skips 0
           neighbor_col = col + col_off
-          if ( 0 <= neighbor_col < self.cols and
+          hori = hori and ( 0 <= neighbor_col < self.cols and
 					  self.grid[row][neighbor_col].state == 2 and
-					  self.grid[row][neighbor_col].adjacent_mines == 1):
-               hori_count += 1
+					  self.grid[row][neighbor_col].adjacent_mines == 1)
+        if hori:
+            if row - 1 >= 0:
+                if self.grid[row - 1][col].state == 1:
+                    unflag.append((row - 1, col))
+                uncover.append((row - 1, col))
+            
+            if row + 1 < self.rows:
+                if self.grid[row + 1][col].state == 1:
+                    unflag.append((row+1, col))
+                uncover.append((row+1, col))
 
-        if hori_count == 2:
-             return True
-
+            for col_off in range(-1, 2, 2): #skips 0
+                for row_off in range(-1, 2, 2): #skips 0
+                    neighbor_row = row + row_off
+                    neighbor_col = col + col_off
+                    if ( 0 <= neighbor_row < self.rows and
+                      0 <= neighbor_col < self.cols and
+                      self.grid[neighbor_row][neighbor_col].state == 2):
+                        if self.grid[row - row_off][neighbor_col].state == 0:
+                            # we guarantee that col - offset exists if the value at col+offset is uncovered
+                            flag.append((row - row_off, neighbor_col)) 
         return (unflag, uncover, flag)
 
     def get_neighbors(self, row: int, col: int) -> list:
@@ -140,7 +174,7 @@ class BoardManager:
             for col_offset in range(-1, 2): #check col left, current col, and right col
                 neighbor_row = row+ row_offset #find row position of neighbor
                 neighbor_col = col + col_offset #find column position of neighbor
-                if row_offset != 0 or col_offset != 0: #make sure original cell is not counted as it's neighbor
+                if row_offset != 0 or col_offset != 0: #make sure original cell is not counted as its neighbor
                     if neighbor_row >= 0 and neighbor_row < self.rows: #check neighbor row is in board
                         if neighbor_col >=0  and neighbor_col < self.cols: #check if neighbor col is in board
                             neighbors.append(self.grid[neighbor_row][neighbor_col]) #append valid neighbor cell to list
@@ -151,7 +185,7 @@ class BoardManager:
     def place_mines(self, num_mines: int, first_row: int, first_col: int) -> None:
         # Validate num_mines is between 10-20.
         # Randomly place mines, ensuring (first_row, first_col) is mine-free.
-          # Validate that the number of mines is between 10 and 20.
+        # Validate that the number of mines is between 10 and 20.
         if num_mines < 10 or num_mines > 20:
             raise ValueError("Number of mines must be between 10 and 20.")
 

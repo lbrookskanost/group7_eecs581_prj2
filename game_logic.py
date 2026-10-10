@@ -164,12 +164,16 @@ class Game():
 
     def ai_turn(self):
         self.ai_solver.generate_changes(self.board)
-        for row, col in self.ai_solver.uncover:
-            self.uncover_cell(row, col)
-
+        # Want to unflag things that need to be uncovered
+        for row, col in self.ai_solver.unflag:
+            self.toggle_flag(row, col)
+        # We only flag if we have guaranteed a bomb
         for row, col in self.ai_solver.flag:
             self.toggle_flag(row, col)
-
+        # Finally uncover
+        for row, col in self.ai_solver.uncover:
+            self.uncover_cell(row, col)
+        # Only if all else fails will be use the fallback
         if self.ai_solver.fallback:
             self.uncover_cell(self.ai_solver.fallback[0], self.ai_solver.fallback[1])
 
@@ -184,3 +188,10 @@ class Game():
         minutes, ms = divmod(ms, 60_000)
         seconds, ms = divmod(ms, 1000)
         return f"{minutes:02}:{seconds:02}.{ms // 10:02}"
+
+    def get_time(self):
+        if not self.elapsed.isValid():
+            return 0
+        
+        ms = self.elapsed.elapsed()
+        return ms

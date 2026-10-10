@@ -56,13 +56,13 @@ class AiSolver:
 				flagged = board.get_flagged_neighbors(row, col)
 
 				if cell.adjacent_mines == 2 and self.difficulty == Difficulty.HARD:
-					if len((tup := board.get_potential_1_2_1(row, col))[1]) != 0 : #this means we have 1 side empty
-						for cell in tup[0]:
-							self.unflag.add(cell)
-						for cell in tup[1]:
-							self.uncover.add(cell)
-						for cell in tup[2]:
-							self.flag.add(cell)
+					(unflag, uncover, flag) = board.get_potential_1_2_1(row, col)
+					for cell in unflag:
+						self.unflag.add(cell)
+					for cell in uncover:
+						self.uncover.add(cell)
+					for cell in flag:
+						self.flag.add(cell)
 
 				if flagged == mine_count:
 					for cell in covered:
@@ -73,6 +73,6 @@ class AiSolver:
 
 
 
-		if len(self.uncover) == len(self.flag) == 0 and len(fallback_set) != 0:
+		if len(self.uncover) == len(self.unflag) == len(self.flag) == 0 and len(fallback_set) != 0:
 			self.fallback = fallback_set.pop()
 
