@@ -114,12 +114,14 @@ class BoardManager:
             if col - 1 >= 0:
                 if self.grid[row][col - 1].state == 1:
                     unflag.append((row, col-1))
-                uncover.append((row, col-1))
+                if self.grid[row][col + 1].state != 2:
+                    uncover.append((row, col-1))
             
             if col + 1 < self.cols:
                 if self.grid[row][col + 1].state == 1:
                     unflag.append((row, col+1))
-                uncover.append((row, col+1))
+                if self.grid[row][col + 1].state != 2:
+                    uncover.append((row, col+1))
 
             for col_off in range(-1, 2, 2): #skips 0
                 for row_off in range(-1, 2, 2): #skips 0
@@ -129,7 +131,7 @@ class BoardManager:
                       0 <= neighbor_col < self.cols and
                       self.grid[neighbor_row][neighbor_col].state == 2):
                         if self.grid[neighbor_row][col - col_off].state == 0:
-                            # we guarantee that col - offset exists if the value at col+offset is uncovered       
+                            # we guarantee that col - offset exists if the value at col+offset is uncovered 
                             flag.append((neighbor_row, col - col_off)) 
         hori = True
         # Horizontal Neighbors
@@ -142,12 +144,14 @@ class BoardManager:
             if row - 1 >= 0:
                 if self.grid[row - 1][col].state == 1:
                     unflag.append((row - 1, col))
-                uncover.append((row - 1, col))
+                if self.grid[row][col + 1].state != 2:
+                    uncover.append((row - 1, col))
             
             if row + 1 < self.rows:
                 if self.grid[row + 1][col].state == 1:
                     unflag.append((row+1, col))
-                uncover.append((row+1, col))
+                if self.grid[row][col + 1].state != 2:
+                    uncover.append((row+1, col))
 
             for col_off in range(-1, 2, 2): #skips 0
                 for row_off in range(-1, 2, 2): #skips 0
