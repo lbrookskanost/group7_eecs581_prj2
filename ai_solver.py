@@ -8,7 +8,7 @@ Description: ai_solver.py is able to play the game. each turn
 Inputs: Difficulty value
 Outputs: Changes to be made to the cells
 
-Authors: Eyassu Mongalo
+Authors: Eyassu Mongalo and Lillian Brooks-Kanost
 Creation Date(s): 9/25/2026
 """
 from enum import Enum
@@ -29,12 +29,14 @@ class AiSolver:
 		self.difficulty = difficulty;
 		self.uncover = set();
 		self.fallback = None;
+		self.unflag = set();
 		self.flag = set();
 
 
 	def clear(self):
 		self.uncover = set()
 		self.fallback = None
+		self.unflag = set()
 		self.flag = set()
 
 	def generate_changes(self, board: BoardManager):
@@ -54,10 +56,13 @@ class AiSolver:
 				flagged = board.get_flagged_neighbors(row, col)
 
 				if cell.adjacent_mines == 2 and self.difficulty == Difficulty.HARD:
-					if board.is_potential_1_2_1(row, col) and len(covered) == 3: #this means we have 1 side empty
-						self.uncover.add(covered.pop(1))
-						for cell in covered:
-							self.flag.add(covered[1])
+					(unflag, uncover, flag) = board.get_potential_1_2_1(row, col)
+					for cell in unflag:
+						self.unflag.add(cell)
+					for cell in uncover:
+						self.uncover.add(cell)
+					for cell in flag:
+						self.flag.add(cell)
 
 				if flagged == mine_count:
 					for cell in covered:
@@ -68,6 +73,6 @@ class AiSolver:
 
 
 
-		if len(self.uncover) == len(self.flag) == 0 and len(fallback_set) != 0:
+		if len(self.uncover) == len(self.unflag) == len(self.flag) == 0 and len(fallback_set) != 0:
 			self.fallback = fallback_set.pop()
 

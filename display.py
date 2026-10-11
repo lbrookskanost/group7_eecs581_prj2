@@ -1,3 +1,12 @@
+"""
+Module Name: display.py
+Class Names: CellButton, GameWindow, StartGameDIalog
+
+Description: display.py handles all UI related function calls/interfaces 
+
+Authors: Sean Crosby, Eyassu Mongalo, Lillian Brooks-Kanost
+Creation Date(s): 9/28/2026
+"""
 from PyQt5.QtCore import QSize, Qt, pyqtSignal, QTimer
 from PyQt5.QtWidgets import (
     QDialog,
@@ -215,15 +224,20 @@ class GameWindow(QMainWindow):
     def cell_clicked(self, row, col):
         was_first = self.game.first_uncover
         self.game.uncover_cell(row, col)
+        self.update_ui()
         if was_first:
             self.timer.start()
             if self.ai_mode == Mode.INTERACTIVE:
                 self.help_button.clicked.connect(self.ai_turn)
 
+            self.setEnabled(False)
             while (self.ai_mode == Mode.SOLVER and
               self.game.check_game_state() == "Playing"):
-                self.ai_turn()
-        self.update_ui()
+                if self.game.get_time() % 1_000 == 0:
+                    self.ai_turn()
+                    self.update_ui()
+                QApplication.processEvents()
+            self.setEnabled(True)
 
     def cell_right_clicked(self, row, col):
         self.game.toggle_flag(row, col)
